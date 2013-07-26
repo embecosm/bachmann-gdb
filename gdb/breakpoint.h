@@ -248,6 +248,11 @@ struct bp_target_info
      is used to determine the type of breakpoint to insert.  */
   CORE_ADDR placed_address;
 
+  /* Thread to which this breakpoint is to be applied (or ptid for thread -1
+     if not specified). Provided for targets capable of implementing thread
+     specific breakpoints. */
+  ptid_t ptid;
+
   /* If this is a ranged breakpoint, then this field contains the
      length of the range that will be watched for execution.  */
   int length;

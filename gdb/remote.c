@@ -1430,6 +1430,7 @@ static ptid_t any_thread_ptid;
 
 static ptid_t general_thread;
 static ptid_t continue_thread;
+static ptid_t breakpoint_thread;
 
 /* This is the traceframe which we last selected on the remote system.
    It will be -1 if no traceframe is selected.  */
@@ -1753,15 +1754,25 @@ remote_program_signals (int numsigs, unsigned char *signals)
     }
 }
 
+/* What type of 'H' packet? */
+enum H_packet_type
+{
+  H_PACKET_GENERAL,
+  H_PACKET_CONTINUE,
+  H_PACKET_BREAKPOINT,
+  NR_H_PACKET_TYPES
+};
+
 /* If PTID is MAGIC_NULL_PTID, don't set any thread.  If PTID is
    MINUS_ONE_PTID, set the thread to -1, so the stub returns the
    thread.  If GEN is set, set the general thread, if not, then set
    the step/continue thread.  */
 static void
-set_thread (struct ptid ptid, int gen)
+set_thread (struct ptid ptid, enum H_packet_type  pt)
 {
   struct remote_state *rs = get_remote_state ();
-  ptid_t state = gen ? general_thread : continue_thread;
+  ptid_t state = (pt == H_PACKET_GENERAL) ? general_thread
+    : (pt == H_PACKET_CONTINUE) ? continue_thread : breakpoint_thread;
   char *buf = rs->buf;
   char *endbuf = rs->buf + get_remote_packet_size ();
 
@@ -1769,7 +1780,9 @@ set_thread (struct ptid ptid, int gen)
     return;
 
   *buf++ = 'H';
-  *buf++ = gen ? 'g' : 'c';
+  *buf++ = (pt == H_PACKET_GENERAL) ? 'g'
+    : (pt == H_PACKET_CONTINUE) ? 'c' : 'z';
+
   if (ptid_equal (ptid, magic_null_ptid))
     xsnprintf (buf, endbuf - buf, "0");
   else if (ptid_equal (ptid, any_thread_ptid))
@@ -1780,22 +1793,30 @@ set_thread (struct ptid ptid, int gen)
     write_ptid (buf, endbuf, ptid);
   putpkt (rs->buf);
   getpkt (&rs->buf, &rs->buf_size, 0);
-  if (gen)
-    general_thread = ptid;
-  else
-    continue_thread = ptid;
+  switch (pt)
+    {
+    H_PACKET_GENERAL: general_thread = ptid; break;
+    H_PACKET_CONTINUE: continue_thread = ptid; break;
+    H_PACKET_BREAKPOINT: breakpoint_thread = ptid; break;
+    }      
 }
 
 static void
 set_general_thread (struct ptid ptid)
 {
-  set_thread (ptid, 1);
+  set_thread (ptid, H_PACKET_GENERAL);
 }
 
 static void
 set_continue_thread (struct ptid ptid)
 {
-  set_thread (ptid, 0);
+  set_thread (ptid, H_PACKET_CONTINUE);
+}
+
+static void
+set_breakpoint_thread (struct ptid ptid)
+{
+  set_thread (ptid, H_PACKET_BREAKPOINT);
 }
 
 /* Change the remote current process.  Which thread within the process
@@ -4331,6 +4352,7 @@ remote_open_1 (char *name, int from_tty,
 
   general_thread = not_sent_ptid;
   continue_thread = not_sent_ptid;
+  breakpoint_thread = not_sent_ptid;
   remote_traceframe_number = -1;
 
   /* Probe for ability to use "ThreadInfo" query, as required.  */
@@ -8181,6 +8203,10 @@ remote_insert_breakpoint (struct gdbarch *gdbarch,
 
       gdbarch_remote_breakpoint_from_pc (gdbarch, &addr, &bpsize);
 
+      /* Set the thread this applies to (which will be -1 if all threads). */
+      set_breakpoint_thread (bp_tgt->ptid);
+
+      /* Set the breakpoint */
       rs = get_remote_state ();
       p = rs->buf;
       endbuf = rs->buf + get_remote_packet_size ();
@@ -8234,6 +8260,10 @@ remote_remove_breakpoint (struct gdbarch *gdbarch,
       if (!gdbarch_has_global_breakpoints (target_gdbarch ()))
 	set_general_process ();
 
+      /* Set the thread this applies to (which will be -1 if all threads). */
+      set_breakpoint_thread (bp_tgt->ptid);
+
+      /* Clear the breakpoint */
       *(p++) = 'z';
       *(p++) = '0';
       *(p++) = ',';
@@ -8445,6 +8475,10 @@ remote_insert_hw_breakpoint (struct gdbarch *gdbarch,
   if (!gdbarch_has_global_breakpoints (target_gdbarch ()))
     set_general_process ();
 
+  /* Set the thread this applies to (which will be -1 if all threads). */
+  set_breakpoint_thread (bp_tgt->ptid);
+
+  /* Set the breakpoint */
   rs = get_remote_state ();
   p = rs->buf;
   endbuf = rs->buf + get_remote_packet_size ();
@@ -8503,6 +8537,10 @@ remote_remove_hw_breakpoint (struct gdbarch *gdbarch,
   if (!gdbarch_has_global_breakpoints (target_gdbarch ()))
     set_general_process ();
 
+  /* Set the thread this applies to (which will be -1 if all threads). */
+  set_breakpoint_thread (bp_tgt->ptid);
+
+  /* Clear the breakpoint */
   *(p++) = 'z';
   *(p++) = '1';
   *(p++) = ',';

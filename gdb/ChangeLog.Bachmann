@@ -1,0 +1,16 @@
+2013-07-26  Jeremy Bennett <jeremy.bennett@embecosm.com>
+
+	* breakpoint.c (insert_bp_location): Set ptid field.
+	* breakpoint.h (struct bp_target_info): Add ptid field.
+	* doc/gdb.texinfo (gdb Remote Serial Protocol): Add documentation
+	of 'Hz' packet and its use with z<n> and Z<n> packets.
+	* ChangeLog.Bachmann: Created.
+	* remote.c (breakpoint_thread): New static variable.
+	(enum H_packet_type): Created.
+	(set_thread): Take enum H_packet_type to identify packet type.
+	Can now produce breakpoint_thread packet.
+	(set_general_thread, set_continue_thread): Use enum H_packet_type
+	when calling set_thread.
+	(remote_insert_breakpoint, remote_remove_breakpoint)
+	(remote_insert_hw_breakpoint, remote_remove_hw_breakpoint): Set
+	the breakpoint thread using 'Hz' packet.

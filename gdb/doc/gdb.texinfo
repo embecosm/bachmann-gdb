@@ -37432,12 +37432,12 @@ for an error
 @item H @var{op} @var{thread-id}
 @cindex @samp{H} packet
 Set thread for subsequent operations (@samp{m}, @samp{M}, @samp{g},
-@samp{G}, et.al.).  @var{op} depends on the operation to be performed:
-it should be @samp{c} for step and continue operations (note that this
-is deprecated, supporting the @samp{vCont} command is a better
-option), @samp{g} for other operations.  The thread designator
-@var{thread-id} has the format and interpretation described in
-@ref{thread-id syntax}.
+@samp{G}, @samp{z}, @samp{Z} et.al.).  @var{op} depends on the
+operation to be performed: it should be @samp{c} for step and continue
+operations (note that this is deprecated, supporting the @samp{vCont}
+command is a better option), @samp{z} for breakpoint operations and
+@samp{g} for other operations.  The thread designator @var{thread-id}
+has the format and interpretation described in @ref{thread-id syntax}.
 
 Reply:
 @table @samp
@@ -37899,6 +37899,11 @@ actual conditional expression in bytecode form.
 
 see @ref{Architecture-Specific Protocol Details}.
 
+Some targets are capable of supporting thread specific breakpoints.
+The thread to be used is specified using the @samp{Hz} packet sent
+before the @samp{z0} or @samp{Z0} packet.  Targets which do not
+support thread specific breakpoints may ignore the thread information.
+
 @emph{Implementation note: It is possible for a target to copy or move
 code that contains memory breakpoints (e.g., when implementing
 overlays).  The behavior of this packet, in the presence of such a
@@ -37925,6 +37930,12 @@ A hardware breakpoint is implemented using a mechanism that is not
 dependant on being able to modify the target's memory.  @var{kind}
 and @var{cond_list} have the same meaning as in @samp{Z0} packets.
 
+Some targets are capable of supporting thread specific hardware
+breakpoints.  The thread to be used is specified using the @samp{Hz}
+packet sent before the @samp{z1} or @samp{Z1} packet.  Targets which
+do not support thread specific breakpoints may ignore the thread
+information.
+
 @emph{Implementation note: A hardware breakpoint is not affected by code
 movement.}
 
@@ -37945,6 +37956,9 @@ for an error
 Insert (@samp{Z2}) or remove (@samp{z2}) a write watchpoint at @var{addr}.
 @var{kind} is interpreted as the number of bytes to watch.
 
+@emph{Implementation note: Unlike breakpoints, there is currently no
+support for thread specific watchpoints using the @samp{Hz} packet.}
+
 Reply:
 @table @samp
 @item OK
@@ -37962,6 +37976,9 @@ for an error
 Insert (@samp{Z3}) or remove (@samp{z3}) a read watchpoint at @var{addr}.
 @var{kind} is interpreted as the number of bytes to watch.
 
+@emph{Implementation note: Unlike breakpoints, there is currently no
+support for thread specific watchpoints using the @samp{Hz} packet.}
+
 Reply:
 @table @samp
 @item OK
@@ -37978,6 +37995,9 @@ for an error
 @cindex @samp{Z4} packet
 Insert (@samp{Z4}) or remove (@samp{z4}) an access watchpoint at @var{addr}.
 @var{kind} is interpreted as the number of bytes to watch.
+
+@emph{Implementation note: Unlike breakpoints, there is currently no
+support for thread specific watchpoints using the @samp{Hz} packet.}
 
 Reply:
 @table @samp

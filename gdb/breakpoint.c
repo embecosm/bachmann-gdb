@@ -2394,6 +2394,7 @@ insert_bp_location (struct bp_location *bl,
   bl->target_info.placed_address = bl->address;
   bl->target_info.placed_address_space = bl->pspace->aspace;
   bl->target_info.length = bl->length;
+  bl->target_info.ptid = thread_id_to_pid (bl->owner->thread);
 
   /* When working with target-side conditions, we must pass all the conditions
      for the same breakpoint address down to the target since GDB will not
