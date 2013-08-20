@@ -37435,9 +37435,10 @@ Set thread for subsequent operations (@samp{m}, @samp{M}, @samp{g},
 @samp{G}, @samp{z}, @samp{Z} et.al.).  @var{op} depends on the
 operation to be performed: it should be @samp{c} for step and continue
 operations (note that this is deprecated, supporting the @samp{vCont}
-command is a better option), @samp{z} for breakpoint operations and
-@samp{g} for other operations.  The thread designator @var{thread-id}
-has the format and interpretation described in @ref{thread-id syntax}.
+command is a better option), @samp{z} for breakpoint/watchpoint
+operations and @samp{g} for other operations.  The thread designator
+@var{thread-id} has the format and interpretation described in
+@ref{thread-id syntax}.
 
 Reply:
 @table @samp

@@ -8318,6 +8318,9 @@ remote_insert_watchpoint (CORE_ADDR addr, int len, int type,
   if (!gdbarch_has_global_breakpoints (target_gdbarch ()))
     set_general_process ();
 
+  /* Set the thread this applies to (which will be -1 if all threads). */
+  set_breakpoint_thread (inferior_ptid);
+
   xsnprintf (rs->buf, endbuf - rs->buf, "Z%x,", packet);
   p = strchr (rs->buf, '\0');
   addr = remote_address_masked (addr);
@@ -8366,6 +8369,9 @@ remote_remove_watchpoint (CORE_ADDR addr, int len, int type,
      necessary.  */
   if (!gdbarch_has_global_breakpoints (target_gdbarch ()))
     set_general_process ();
+
+  /* Set the thread this applies to (which will be -1 if all threads). */
+  set_breakpoint_thread (inferior_ptid);
 
   xsnprintf (rs->buf, endbuf - rs->buf, "z%x,", packet);
   p = strchr (rs->buf, '\0');
